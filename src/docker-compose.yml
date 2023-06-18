@@ -14,6 +14,7 @@ services:
       - 3000:3000
     depends_on:
       - db
+    restart: on-failure
     networks:
       - gonet
   db:
