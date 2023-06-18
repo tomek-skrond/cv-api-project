@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -27,7 +28,7 @@ func (s *APIServer) Run() {
 	router.HandleFunc("/education", makeHTTPHandler(s.handleEducation))
 
 	fmt.Printf("Server listening at port %s \n", s.ListenPort)
-	http.ListenAndServe(s.ListenPort, nil)
+	http.ListenAndServe(s.ListenPort, router)
 }
 
 // API //
@@ -43,10 +44,45 @@ func (s *APIServer) handleEducation(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (s *APIServer) handleGetEducation(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	// invoke db operation
+	// encode db response to JSON + return
+	eduArray, err := s.Store.GetEducation()
+	if err != nil {
+		fmt.Println("store err")
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, eduArray)
 }
 func (s *APIServer) handleCreateEducation(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	// create empty object
+	// fetch data from request (decode)
+	// feed data to empty object
+	// invoke database operation (s.Store.CreateEducation())
+	// return json with data
+	createEducationRequest := new(Education)
+
+	if err := json.NewDecoder(r.Body).Decode(createEducationRequest); err != nil {
+		fmt.Println("formatting err")
+		return err
+	}
+
+	newEducation, err := NewEducation(createEducationRequest.School,
+		createEducationRequest.Degree,
+		createEducationRequest.DateStarted,
+		createEducationRequest.DateEnded)
+
+	if err != nil {
+		fmt.Println("constructor err")
+		return err
+	}
+
+	if err := s.Store.CreateEducation(newEducation); err != nil {
+		fmt.Println("store err")
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, newEducation)
 }
 
 // typowana funkcja, bierze responsewritera i request jako arg i zwraca typ error
@@ -69,5 +105,6 @@ func makeHTTPHandler(f apiFunc) http.HandlerFunc {
 func WriteJSON(w http.ResponseWriter, status int, v any) error { //response writer -> konstruuje odpowiedzi HTTP
 	w.WriteHeader(status)                              //wpisuje status Request'a do response writera
 	w.Header().Add("Content-Type", "application/json") //dodawnanie naglowka http
-	return json.NewEncoder(w).Encode(v)                //zwracanie JSON'a (na poczatku tworzenie encodera z ResponseWriter potem kodowanie jasona do strumienia)
+	fmt.Printf("%v Request Status: %d \n", time.Now().UTC(), status)
+	return json.NewEncoder(w).Encode(v) //zwracanie JSON'a (na poczatku tworzenie encodera z ResponseWriter potem kodowanie jasona do strumienia)
 }

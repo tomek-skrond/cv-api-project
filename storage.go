@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
@@ -19,13 +20,61 @@ type PostgresStore struct {
 }
 
 /// CRUD FUNCTIONS - EDUCATION DB///
-func (s *PostgresStore) CreateEducation(*Education) error {
-	return nil
+func (s *PostgresStore) CreateEducation(edu *Education) error {
+	// Connect with db
+	// Insert a row
+	// return
+	query := `insert into education (school,degree,date_started,date_ended) values ($1, $2, $3, $4)`
+
+	response, err := s.db.Query(
+		query,
+		edu.School,
+		edu.Degree,
+		edu.DateStarted, edu.DateEnded)
+
+	if err != nil {
+		fmt.Printf("%v\n", response.Err())
+		return err
+	}
+
+	return err
 }
+
+func (s *PostgresStore) GetEducation() ([]*Education, error) {
+	query := `select * from education`
+
+	eduArr := []*Education{}
+
+	response, err := s.db.Query(query)
+	if err != nil {
+		fmt.Println("query err")
+		return nil, err
+	}
+
+	for response.Next() {
+		edu := new(Education)
+
+		err := response.Scan(&edu.ID,
+			&edu.School,
+			&edu.Degree,
+			&edu.DateStarted,
+			&edu.DateEnded,
+		)
+
+		if err != nil {
+			fmt.Printf("scan err")
+			return nil, err
+		}
+
+		eduArr = append(eduArr, edu)
+	}
+
+	return eduArr, nil
+}
+
 func (s *PostgresStore) DeleteEducation(int) error                { return nil }
 func (s *PostgresStore) UpdateEducation(*Education) error         { return nil }
 func (s *PostgresStore) GetEducationByID(int) (*Education, error) { return &Education{}, nil }
-func (s *PostgresStore) GetEducation() ([]*Education, error)      { return []*Education{}, nil }
 
 // DATABASE INIT //
 func NewPostgresStore() (*PostgresStore, error) {

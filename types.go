@@ -10,10 +10,20 @@ import "time"
 // 6. Contacts
 
 type Education struct {
+	ID          int
 	School      string    `json:"school"`
 	Degree      string    `json:"degree"`
 	DateStarted time.Time `json:"dateStarted"`
 	DateEnded   time.Time `json:"dateEnded"`
+}
+
+func NewEducation(school, degree string, dateStarted, dateEnded time.Time) (*Education, error) {
+	return &Education{
+		School:      string(school),
+		Degree:      string(degree),
+		DateStarted: time.Time(dateStarted),
+		DateEnded:   time.Time(dateEnded),
+	}, nil
 }
 
 type Experience struct {
