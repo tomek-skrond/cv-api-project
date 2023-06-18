@@ -13,14 +13,16 @@ type Education struct {
 	ID          int
 	School      string    `json:"school"`
 	Degree      string    `json:"degree"`
+	Field       string    `json:"field"`
 	DateStarted time.Time `json:"dateStarted"`
 	DateEnded   time.Time `json:"dateEnded"`
 }
 
-func NewEducation(school, degree string, dateStarted, dateEnded time.Time) (*Education, error) {
+func NewEducation(school, degree, field string, dateStarted, dateEnded time.Time) (*Education, error) {
 	return &Education{
 		School:      string(school),
 		Degree:      string(degree),
+		Field:       string(field),
 		DateStarted: time.Time(dateStarted),
 		DateEnded:   time.Time(dateEnded),
 	}, nil

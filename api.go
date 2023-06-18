@@ -69,6 +69,7 @@ func (s *APIServer) handleCreateEducation(w http.ResponseWriter, r *http.Request
 
 	newEducation, err := NewEducation(createEducationRequest.School,
 		createEducationRequest.Degree,
+		createEducationRequest.Field,
 		createEducationRequest.DateStarted,
 		createEducationRequest.DateEnded)
 

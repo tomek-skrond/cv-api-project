@@ -24,12 +24,13 @@ func (s *PostgresStore) CreateEducation(edu *Education) error {
 	// Connect with db
 	// Insert a row
 	// return
-	query := `insert into education (school,degree,date_started,date_ended) values ($1, $2, $3, $4)`
+	query := `insert into education (school,degree,field,date_started,date_ended) values ($1, $2, $3, $4, $5)`
 
 	response, err := s.db.Query(
 		query,
 		edu.School,
 		edu.Degree,
+		edu.Field,
 		edu.DateStarted, edu.DateEnded)
 
 	if err != nil {
@@ -57,6 +58,7 @@ func (s *PostgresStore) GetEducation() ([]*Education, error) {
 		err := response.Scan(&edu.ID,
 			&edu.School,
 			&edu.Degree,
+			&edu.Field,
 			&edu.DateStarted,
 			&edu.DateEnded,
 		)
@@ -105,6 +107,7 @@ func (s *PostgresStore) CreateEducationTable() error {
 		id serial primary key,
 		school varchar(50),
 		degree varchar(50),
+		field varchar(50),
 		date_started timestamp,
 		date_ended timestamp
 	)`
