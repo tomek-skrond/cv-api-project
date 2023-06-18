@@ -1,0 +1,36 @@
+version: '3'
+services:
+  app:
+    container_name: cvapi
+    build:
+      context: ./go-app
+      dockerfile: Dockerfile
+    environment:
+      - DB_PASS=cvapi
+      - DB_USER=postgres
+      - DB_NAME=postgres
+      - DB_HOST=postgres
+      #- DATABASE_HOST=src-app-1
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    networks:
+      - gonet
+  db:
+    container_name: db
+    image: postgres:latest
+    hostname: postgres
+    environment:
+      - POSTGRES_PASSWORD=cvapi
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+      #- DATABASE_HOST=src-app-1
+    ports:
+      - 5432:5432
+    networks:
+      - gonet
+
+networks:
+  gonet:
+    driver: bridge
