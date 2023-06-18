@@ -44,7 +44,12 @@ curl -X POST -d '{"ID":1,"school":"Politechnika Wroclawska","degree":"Engineers 
 ```
 
 ## Deploying CV API
-To deploy this API, switch to the `dockerize` branch and go to the `src/` folder, then enter a command:
+To deploy this API, clone the `dockerize` branch and go to the `src/` folder, then enter a command:
 ```
 docker compose build && docker compose up -d
+```
+
+To clone this branch use the command:
+```
+git clone --branch dockerize <remote-repo-url>
 ```
