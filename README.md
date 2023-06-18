@@ -51,5 +51,5 @@ docker compose build && docker compose up -d
 
 To clone this branch use the command:
 ```
-git clone --branch dockerize <remote-repo-url>
+git clone --branch dockerize git@github.com:tomek-skrond/cv-api-project.git
 ```
