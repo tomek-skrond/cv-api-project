@@ -6,7 +6,7 @@ It is currently under development, for now it contains the following endpoints:
 - `/education` -> endpoint with my Education info (GET and POST implemented)
 
 
-I am developing code in `master` branch, in `dockerize` branch, `dockerize` branch contains `docker-compose` configuration for deploying this API.
+I am developing code in `master` branch, `dockerize` branch contains `docker-compose` configuration for deploying this API.
 
 
 ## `Education` table data format
@@ -41,4 +41,10 @@ Data:
 To insert another row into table, use the following command:
 ```
 curl -X POST -d '{"ID":1,"school":"Politechnika Wroclawska","degree":"Engineers Degree","dateStarted":"2021-02-18T00:00:00Z","dateEnded":"2023-02-18T00:00:00Z"}' http://localhost:3000/education
+```
+
+## Deploying CV API
+To deploy this API, switch to the `dockerize` branch and go to the `src/` folder, then enter a command:
+```
+docker compose build && docker compose up -d
 ```
