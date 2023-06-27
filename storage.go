@@ -9,7 +9,7 @@ import (
 
 type Storage interface {
 	CreateEducation(*Education) error
-	DeleteEducation(int) error
+	DeleteEducationByID(int) error
 	UpdateEducation(*Education) error
 	GetEducationByID(int) (*Education, error)
 	GetEducation() ([]*Education, error)
@@ -74,9 +74,42 @@ func (s *PostgresStore) GetEducation() ([]*Education, error) {
 	return eduArr, nil
 }
 
-func (s *PostgresStore) DeleteEducation(int) error                { return nil }
-func (s *PostgresStore) UpdateEducation(*Education) error         { return nil }
-func (s *PostgresStore) GetEducationByID(int) (*Education, error) { return &Education{}, nil }
+func (s *PostgresStore) DeleteEducationByID(id int) error {
+	if _, err := s.db.Query(`delete from education where id = $1`, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+func (s *PostgresStore) UpdateEducation(*Education) error { return nil }
+func (s *PostgresStore) GetEducationByID(id int) (*Education, error) {
+
+	response, err := s.db.Query(`select * from education where id = $1`, id)
+
+	if err != nil {
+		fmt.Println("Query err")
+		return nil, err
+	}
+
+	education := new(Education)
+
+	for response.Next() {
+		err := response.Scan(
+			&education.ID,
+			&education.School,
+			&education.Degree,
+			&education.Field,
+			&education.DateStarted,
+			&education.DateEnded)
+
+		if err != nil {
+			fmt.Println("scan err")
+			return nil, err
+		}
+	}
+
+	return education, nil
+}
 
 // DATABASE INIT //
 func NewPostgresStore() (*PostgresStore, error) {
