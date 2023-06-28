@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -135,7 +136,12 @@ func NewPostgresStore() (*PostgresStore, error) {
 	// 1. connect with DB using connection string
 	// 2. ping db
 	// 3. return DB object
-	connStr := "user=postgres dbname=postgres password=cvapi sslmode=disable"
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASS")
+	host := os.Getenv("DB_HOST")
+	database := os.Getenv("DB_NAME")
+
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", user, pass, host, database)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
