@@ -81,7 +81,26 @@ func (s *PostgresStore) DeleteEducationByID(id int) error {
 
 	return nil
 }
-func (s *PostgresStore) UpdateEducation(*Education) error { return nil }
+func (s *PostgresStore) UpdateEducation(edu *Education) error {
+	// TODO: CHECK IF RECORD EXISTS
+	query := `update education set school = $1, degree = $2, field = $3, date_started = $4, date_ended = $5 where id = $6`
+
+	response, err := s.db.Query(query,
+		edu.School,
+		edu.Degree,
+		edu.Field,
+		edu.DateStarted,
+		edu.DateEnded,
+		edu.ID,
+	)
+	if err != nil {
+		fmt.Printf("%v\n", response.Err())
+		return err
+	}
+
+	return nil
+}
+
 func (s *PostgresStore) GetEducationByID(id int) (*Education, error) {
 
 	response, err := s.db.Query(`select * from education where id = $1`, id)

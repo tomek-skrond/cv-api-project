@@ -72,8 +72,36 @@ func (s *APIServer) handleEducationByID(w http.ResponseWriter, r *http.Request) 
 
 		return WriteJSON(w, http.StatusOK, edu)
 	}
+
 	if r.Method == "DELETE" {
 		return s.Store.DeleteEducationByID(id)
+	}
+	if r.Method == "PUT" {
+
+		id, err := GetID(w, r)
+		if err != nil {
+			return err
+		}
+		eduUpdateRequest := new(Education)
+		eduUpdateRequest.ID = id
+
+		if err := json.NewDecoder(r.Body).Decode(eduUpdateRequest); err != nil {
+			return err
+		}
+
+		updatedEdu := &Education{
+			ID:          eduUpdateRequest.ID,
+			School:      eduUpdateRequest.School,
+			Degree:      eduUpdateRequest.Degree,
+			Field:       eduUpdateRequest.Field,
+			DateStarted: eduUpdateRequest.DateStarted,
+			DateEnded:   eduUpdateRequest.DateEnded}
+
+		if err != nil {
+			return err
+		}
+
+		return s.Store.UpdateEducation(updatedEdu)
 	}
 	return apiError{Err: "error", Status: http.StatusBadRequest}
 }
