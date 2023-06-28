@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -26,6 +27,7 @@ func (s *APIServer) Run() {
 	//http.HandleFunc("/user", makeHTTPHandler(handleGetUserByID))
 	router := mux.NewRouter()
 	router.HandleFunc("/education", makeHTTPHandler(s.handleEducation))
+	router.HandleFunc("/education/{id}", makeHTTPHandler(s.handleEducationByID))
 
 	fmt.Printf("Server listening at port %s \n", s.ListenPort)
 	http.ListenAndServe(s.ListenPort, router)
@@ -53,6 +55,55 @@ func (s *APIServer) handleGetEducation(w http.ResponseWriter, r *http.Request) e
 	}
 
 	return WriteJSON(w, http.StatusOK, eduArray)
+}
+
+func (s *APIServer) handleEducationByID(w http.ResponseWriter, r *http.Request) error {
+	id, err := GetID(w, r)
+	if err != nil {
+		return err
+	}
+
+	if r.Method == "GET" {
+
+		edu, err := s.Store.GetEducationByID(id)
+		if err != nil {
+			return err
+		}
+
+		return WriteJSON(w, http.StatusOK, edu)
+	}
+
+	if r.Method == "DELETE" {
+		return s.Store.DeleteEducationByID(id)
+	}
+	if r.Method == "PUT" {
+
+		id, err := GetID(w, r)
+		if err != nil {
+			return err
+		}
+		eduUpdateRequest := new(Education)
+		eduUpdateRequest.ID = id
+
+		if err := json.NewDecoder(r.Body).Decode(eduUpdateRequest); err != nil {
+			return err
+		}
+
+		updatedEdu := &Education{
+			ID:          eduUpdateRequest.ID,
+			School:      eduUpdateRequest.School,
+			Degree:      eduUpdateRequest.Degree,
+			Field:       eduUpdateRequest.Field,
+			DateStarted: eduUpdateRequest.DateStarted,
+			DateEnded:   eduUpdateRequest.DateEnded}
+
+		if err != nil {
+			return err
+		}
+
+		return s.Store.UpdateEducation(updatedEdu)
+	}
+	return apiError{Err: "error", Status: http.StatusBadRequest}
 }
 func (s *APIServer) handleCreateEducation(w http.ResponseWriter, r *http.Request) error {
 	// create empty object
@@ -108,4 +159,14 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error { //response writ
 	w.Header().Add("Content-Type", "application/json") //dodawnanie naglowka http
 	fmt.Printf("%v Request Status: %d \n", time.Now().UTC(), status)
 	return json.NewEncoder(w).Encode(v) //zwracanie JSON'a (na poczatku tworzenie encodera z ResponseWriter potem kodowanie jasona do strumienia)
+}
+
+func GetID(w http.ResponseWriter, r *http.Request) (int, error) {
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
 }
