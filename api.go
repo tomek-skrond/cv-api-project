@@ -28,12 +28,64 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 	router.HandleFunc("/education", makeHTTPHandler(s.handleEducation))
 	router.HandleFunc("/education/{id}", makeHTTPHandler(s.handleEducationByID))
+	router.HandleFunc("/experience", makeHTTPHandler(s.handleExperience))
 
 	fmt.Printf("Server listening at port %s \n", s.ListenPort)
 	http.ListenAndServe(s.ListenPort, router)
 }
 
-// API //
+// API - Experience//
+func (s *APIServer) handleExperience(w http.ResponseWriter, r *http.Request) error {
+	if r.Method == "GET" {
+		return s.handleGetExperience(w, r)
+	}
+	if r.Method == "POST" {
+		return s.handleCreateExperience(w, r)
+	}
+
+	return apiError{Err: "Bad request", Status: http.StatusBadRequest}
+}
+
+func (s *APIServer) handleGetExperience(w http.ResponseWriter, r *http.Request) error {
+
+	expArray, err := s.Store.GetExperience()
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, expArray)
+}
+
+func (s *APIServer) handleCreateExperience(w http.ResponseWriter, r *http.Request) error {
+	// create empty object
+	// fetch data from request (decode)
+	// feed data to empty object
+	// invoke database operation (s.Store.CreateEducation())
+	// return json with data
+	createExpReq := new(Experience)
+	if err := json.NewDecoder(r.Body).Decode(createExpReq); err != nil {
+		return err
+	}
+
+	exp, err := NewExperience(
+		createExpReq.Company,
+		createExpReq.Role,
+		createExpReq.DateStarted,
+		createExpReq.DateEnded,
+	)
+
+	if err != nil {
+		fmt.Println("formatting error in Exp")
+		return err
+	}
+
+	if err := s.Store.CreateExperience(exp); err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, exp)
+}
+
+// API - Education//
 func (s *APIServer) handleEducation(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
 		return s.handleGetEducation(w, r)

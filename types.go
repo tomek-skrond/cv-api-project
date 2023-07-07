@@ -8,6 +8,22 @@ import "time"
 // 4. Languages
 // 5. Projects
 // 6. Contacts
+type Person struct {
+	ID        int
+	FirstName string        `json:"firstName"`
+	LastName  string        `json:"lastName"`
+	EduArr    []*Education  `json:"eduArr"`
+	ExpArr    []*Experience `json:"expArr"`
+}
+
+func NewPerson(fn, ln string) (*Person, error) {
+	return &Person{
+		FirstName: fn,
+		LastName:  ln,
+		EduArr:    []*Education{},
+		ExpArr:    []*Experience{},
+	}, nil
+}
 
 type Education struct {
 	ID          int
@@ -29,10 +45,20 @@ func NewEducation(school, degree, field string, dateStarted, dateEnded time.Time
 }
 
 type Experience struct {
+	ID          int
 	Company     string    `json:"company"`
 	Role        string    `json:"role"`
 	DateStarted time.Time `json:"dateStarted"`
 	DateEnded   time.Time `json:"dateEnded"`
+}
+
+func NewExperience(company, role string, dateStarted, dateEnded time.Time) (*Experience, error) {
+	return &Experience{
+		Company:     string(company),
+		Role:        string(role),
+		DateStarted: time.Time(dateStarted),
+		DateEnded:   time.Time(dateEnded),
+	}, nil
 }
 
 type Skills struct {

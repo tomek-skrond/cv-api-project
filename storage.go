@@ -16,6 +16,11 @@ type Storage interface {
 	UpdateEducation(*Education) error
 	GetEducationByID(int) (*Education, error)
 	GetEducation() ([]*Education, error)
+	CreateExperience(*Experience) error
+	DeleteExperienceByID(int) error
+	UpdateExperience(*Experience) error
+	GetExperienceByID(int) (*Experience, error)
+	GetExperience() ([]*Experience, error)
 }
 
 type PostgresStore struct {
@@ -184,7 +189,15 @@ func NewPostgresStore() (*PostgresStore, error) {
 }
 
 func (s *PostgresStore) Init() error {
-	return s.CreateEducationTable()
+	if err := s.CreateEducationTable(); err != nil {
+		return err
+	}
+	if err := s.CreateExperienceTable(); err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func (s *PostgresStore) CreateEducationTable() error {
@@ -200,4 +213,72 @@ func (s *PostgresStore) CreateEducationTable() error {
 	_, err := s.db.Exec(query)
 
 	return err
+}
+
+func (s *PostgresStore) CreateExperienceTable() error {
+	query := `create table if not exists experience(
+		id serial primary key,
+		company varchar(50),
+		role varchar(50),
+		date_started timestamp,
+		date_ended timestamp
+	)`
+
+	_, err := s.db.Exec(query)
+
+	return err
+}
+
+func (s *PostgresStore) CreateExperience(exp *Experience) error {
+	query := `insert into experience (company,role,date_started,date_ended) values ($1, $2, $3, $4)`
+
+	response, err := s.db.Query(
+		query,
+		exp.Company,
+		exp.Role,
+		exp.DateStarted, exp.DateEnded)
+
+	if err != nil {
+		fmt.Printf("%v\n", response.Err())
+		return err
+	}
+
+	return err
+}
+
+func (s *PostgresStore) DeleteExperienceByID(int) error             { return apiError{} }
+func (s *PostgresStore) UpdateExperience(*Experience) error         { return apiError{} }
+func (s *PostgresStore) GetExperienceByID(int) (*Experience, error) { return &Experience{}, apiError{} }
+func (s *PostgresStore) GetExperience() ([]*Experience, error) {
+
+	query := `select * from experience`
+
+	expArr := []*Experience{}
+
+	response, err := s.db.Query(query)
+
+	if err != nil {
+		fmt.Println("query err")
+		return nil, err
+	}
+
+	for response.Next() {
+		exp := new(Experience)
+
+		err := response.Scan(&exp.ID,
+			&exp.Company,
+			&exp.Role,
+			&exp.DateStarted,
+			&exp.DateEnded,
+		)
+
+		if err != nil {
+			fmt.Printf("scan err")
+			return nil, err
+		}
+
+		expArr = append(expArr, exp)
+	}
+
+	return expArr, nil
 }
