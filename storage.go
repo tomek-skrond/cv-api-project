@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"net/http"
 
 	_ "github.com/lib/pq"
 )
@@ -19,7 +21,7 @@ type PostgresStore struct {
 	db *sql.DB
 }
 
-/// CRUD FUNCTIONS - EDUCATION DB///
+// / CRUD FUNCTIONS - EDUCATION DB///
 func (s *PostgresStore) CreateEducation(edu *Education) error {
 	// Connect with db
 	// Insert a row
@@ -75,11 +77,18 @@ func (s *PostgresStore) GetEducation() ([]*Education, error) {
 }
 
 func (s *PostgresStore) DeleteEducationByID(id int) error {
+
+	check := `select * from education where id = $1`
+
+	if !s.rowExists(check, id) {
+		return apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
+
 	if _, err := s.db.Query(`delete from education where id = $1`, id); err != nil {
 		return err
 	}
 
-	return nil
+	return apiError{Err: "Deleted requested resource", Status: http.StatusOK}
 }
 func (s *PostgresStore) UpdateEducation(edu *Education) error {
 	// TODO: CHECK IF RECORD EXISTS
@@ -101,7 +110,23 @@ func (s *PostgresStore) UpdateEducation(edu *Education) error {
 	return nil
 }
 
+func (s *PostgresStore) rowExists(query string, args ...interface{}) bool {
+	var exists bool
+	query = fmt.Sprintf("SELECT exists (%s)", query)
+	err := s.db.QueryRow(query, args...).Scan(&exists)
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatalf("error")
+	}
+	return exists
+}
+
 func (s *PostgresStore) GetEducationByID(id int) (*Education, error) {
+
+	query := fmt.Sprintf(`select * from education where id = $1`)
+
+	if !s.rowExists(query, id) {
+		return nil, apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
 
 	response, err := s.db.Query(`select * from education where id = $1`, id)
 
