@@ -1,0 +1,6 @@
+#!/bin/bash
+
+DB_USER=postgres
+DB_PASS=cvapi
+DB_HOST=localhost
+DB_NAME=postgres
