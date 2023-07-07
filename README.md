@@ -3,7 +3,7 @@
 This is a Go API that is my CV as an API.
 
 It is currently under development, for now it contains the following endpoints:
-- `/education` -> endpoint with my Education info (GET and POST implemented)
+- `/education` -> endpoint with my Education info (CRUD implemented)
 
 
 I am developing code in `master` branch, `dockerize` branch contains `docker-compose` configuration for deploying this API.
