@@ -27,7 +27,7 @@ type PostgresStore struct {
 	db *sql.DB
 }
 
-// / CRUD FUNCTIONS - EDUCATION DB///
+// CRUD FUNCTIONS - EDUCATION DB //
 func (s *PostgresStore) CreateEducation(edu *Education) error {
 	// Connect with db
 	// Insert a row
@@ -99,6 +99,10 @@ func (s *PostgresStore) DeleteEducationByID(id int) error {
 func (s *PostgresStore) UpdateEducation(edu *Education) error {
 	// TODO: CHECK IF RECORD EXISTS
 	query := `update education set school = $1, degree = $2, field = $3, date_started = $4, date_ended = $5 where id = $6`
+
+	if !s.rowExists(`select * from education where id = $1`, edu.ID) {
+		return apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
 
 	response, err := s.db.Query(query,
 		edu.School,
@@ -246,9 +250,70 @@ func (s *PostgresStore) CreateExperience(exp *Experience) error {
 	return err
 }
 
-func (s *PostgresStore) DeleteExperienceByID(int) error             { return apiError{} }
-func (s *PostgresStore) UpdateExperience(*Experience) error         { return apiError{} }
-func (s *PostgresStore) GetExperienceByID(int) (*Experience, error) { return &Experience{}, apiError{} }
+func (s *PostgresStore) DeleteExperienceByID(id int) error {
+
+	if !s.rowExists(`select * from experience where id = $1`, id) {
+		return fmt.Errorf("Permission denied!")
+	}
+
+	if _, err := s.db.Query(`delete from experience where id = $1`, id); err != nil {
+		return err
+	}
+	return apiError{Err: "Resource deleted successfully", Status: http.StatusOK}
+}
+
+func (s *PostgresStore) UpdateExperience(exp *Experience) error {
+	query := `update experience set company = $1, role = $2, date_started = $3, date_ended = $4 where id = $5`
+
+	if !s.rowExists(`select * from experience where id = $1`, exp.ID) {
+		return apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
+
+	if _, err := s.db.Query(query,
+		exp.ID,
+		exp.Company,
+		exp.Role,
+		exp.DateStarted,
+		exp.DateEnded,
+	); err != nil {
+		return apiError{Err: "query err", Status: http.StatusInternalServerError}
+	}
+
+	return nil
+}
+func (s *PostgresStore) GetExperienceByID(id int) (*Experience, error) {
+
+	query := `select * from experience where id = $1`
+
+	if !s.rowExists(`select * from experience where id = $1`, id) {
+		return nil, apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
+
+	response, err := s.db.Query(query)
+	if err != nil {
+		return nil, apiError{Err: "query error", Status: http.StatusInternalServerError}
+	}
+
+	exp := new(Experience)
+
+	for response.Next() {
+
+		err := response.Scan(
+			&exp.ID,
+			&exp.Company,
+			&exp.Role,
+			&exp.DateStarted,
+			&exp.DateEnded,
+		)
+
+		if err != nil {
+			fmt.Println("formating err GetExperienceByID")
+			return nil, err
+		}
+	}
+
+	return exp, nil
+}
 func (s *PostgresStore) GetExperience() ([]*Experience, error) {
 
 	query := `select * from experience`

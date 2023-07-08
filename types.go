@@ -62,8 +62,16 @@ func NewExperience(company, role string, dateStarted, dateEnded time.Time) (*Exp
 }
 
 type Skills struct {
+	ID          int
 	Technology  string `json:"technology"`
 	Description string `json:"description"`
+}
+
+func NewSkills(tech, desc string) (*Skills, error) {
+	return &Skills{
+		Technology:  string(tech),
+		Description: string(desc),
+	}, nil
 }
 
 type Languages struct {
