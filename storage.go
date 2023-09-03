@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -21,6 +22,11 @@ type Storage interface {
 	UpdateExperience(*Experience) error
 	GetExperienceByID(int) (*Experience, error)
 	GetExperience() ([]*Experience, error)
+	CreateLanguage(*Language) error
+	DeleteLanguageByID(int) error
+	UpdateLanguage(*Language) error
+	GetLanguageByID(int) (*Language, error)
+	GetLanguages() ([]*Language, error)
 }
 
 type PostgresStore struct {
@@ -96,6 +102,7 @@ func (s *PostgresStore) DeleteEducationByID(id int) error {
 
 	return apiError{Err: "Deleted requested resource", Status: http.StatusOK}
 }
+
 func (s *PostgresStore) UpdateEducation(edu *Education) error {
 	// TODO: CHECK IF RECORD EXISTS
 	query := `update education set school = $1, degree = $2, field = $3, date_started = $4, date_ended = $5 where id = $6`
@@ -118,16 +125,6 @@ func (s *PostgresStore) UpdateEducation(edu *Education) error {
 	}
 
 	return nil
-}
-
-func (s *PostgresStore) rowExists(query string, args ...interface{}) bool {
-	var exists bool
-	query = fmt.Sprintf("SELECT exists (%s)", query)
-	err := s.db.QueryRow(query, args...).Scan(&exists)
-	if err != nil && err != sql.ErrNoRows {
-		log.Fatalf("error")
-	}
-	return exists
 }
 
 func (s *PostgresStore) GetEducationByID(id int) (*Education, error) {
@@ -171,12 +168,20 @@ func NewPostgresStore() (*PostgresStore, error) {
 	// 2. ping db
 	// 3. return DB object
 
+	if err := godotenv.Load(); err != nil {
+		return nil, err
+	}
+
 	user := os.Getenv("DB_USER")
 	pass := os.Getenv("DB_PASS")
 	host := os.Getenv("DB_HOST")
 	database := os.Getenv("DB_NAME")
 
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", user, pass, host, database)
+	fmt.Println(user, pass, host, database)
+
+	connStr := fmt.Sprintf("postgresql://%v:%v@%v/%v?sslmode=disable", user, pass, host, database)
+
+	fmt.Println(connStr)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -197,6 +202,9 @@ func (s *PostgresStore) Init() error {
 		return err
 	}
 	if err := s.CreateExperienceTable(); err != nil {
+		return err
+	}
+	if err := s.CreateLanguagesTable(); err != nil {
 		return err
 	}
 
@@ -227,6 +235,21 @@ func (s *PostgresStore) CreateExperienceTable() error {
 		date_started timestamp,
 		date_ended timestamp
 	)`
+
+	_, err := s.db.Exec(query)
+
+	return err
+}
+
+func (s *PostgresStore) CreateLanguagesTable() error {
+	query := `create table if not exists languages(
+		id serial primary key,
+		language varchar(50),
+		level varchar(50),
+		description varchar(50)
+	)`
+
+	fmt.Println("Query executed lang")
 
 	_, err := s.db.Exec(query)
 
@@ -266,7 +289,7 @@ func (s *PostgresStore) UpdateExperience(exp *Experience) error {
 	query := `update experience set company = $1, role = $2, date_started = $3, date_ended = $4 where id = $5`
 
 	if !s.rowExists(`select * from experience where id = $1`, exp.ID) {
-		return apiError{Err: "not existing resource", Status: http.StatusNotFound}
+		return apiError{Err: "not allowed", Status: http.StatusNotFound}
 	}
 
 	if _, err := s.db.Query(query,
@@ -276,7 +299,7 @@ func (s *PostgresStore) UpdateExperience(exp *Experience) error {
 		exp.DateStarted,
 		exp.DateEnded,
 	); err != nil {
-		return apiError{Err: "query err", Status: http.StatusInternalServerError}
+		return apiError{Err: "query error ", Status: http.StatusInternalServerError}
 	}
 
 	return nil
@@ -289,7 +312,7 @@ func (s *PostgresStore) GetExperienceByID(id int) (*Experience, error) {
 		return nil, apiError{Err: "not existing resource", Status: http.StatusNotFound}
 	}
 
-	response, err := s.db.Query(query)
+	response, err := s.db.Query(query, id)
 	if err != nil {
 		return nil, apiError{Err: "query error", Status: http.StatusInternalServerError}
 	}
@@ -346,4 +369,130 @@ func (s *PostgresStore) GetExperience() ([]*Experience, error) {
 	}
 
 	return expArr, nil
+}
+
+func (s *PostgresStore) rowExists(query string, args ...interface{}) bool {
+	var exists bool
+	query = fmt.Sprintf("SELECT exists (%s)", query)
+	err := s.db.QueryRow(query, args...).Scan(&exists)
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatalf("error")
+	}
+	return exists
+}
+
+//////////////// Languages ////////////////////
+
+func (s *PostgresStore) CreateLanguage(lang *Language) error {
+	// Connect with db
+	// Insert a row
+	// return
+	query := `insert into languages (language,level,description) values ($1, $2, $3)`
+
+	response, err := s.db.Query(
+		query,
+		lang.Language,
+		lang.Level,
+		lang.Description,
+	)
+
+	if err != nil {
+		fmt.Printf("%v\n", response.Err())
+		return err
+	}
+
+	return err
+}
+func (s *PostgresStore) DeleteLanguageByID(id int) error {
+	if !s.rowExists(`select * from languages where id = $1`, id) {
+		return fmt.Errorf("Permission denied!")
+	}
+
+	if _, err := s.db.Query(`delete from languages where id = $1`, id); err != nil {
+		return err
+	}
+	return apiError{Err: "Resource deleted successfully", Status: http.StatusOK}
+}
+func (s *PostgresStore) UpdateLanguage(lang *Language) error {
+	query := `update languages set school = $1, degree = $2, field = $3, date_started = $4, date_ended = $5 where id = $6`
+
+	if !s.rowExists(`select * from languages where id = $1`, lang.ID) {
+		return apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
+
+	response, err := s.db.Query(query,
+		lang.Language,
+		lang.Level,
+		lang.Description,
+	)
+
+	if err != nil {
+		fmt.Printf("%v\n", response.Err())
+		return err
+	}
+
+	return nil
+}
+func (s *PostgresStore) GetLanguageByID(id int) (*Language, error) {
+	query := `select * from languages where id = $1`
+
+	if !s.rowExists(`select * from languages where id = $1`, id) {
+		return nil, apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
+
+	response, err := s.db.Query(query, id)
+	if err != nil {
+		return nil, apiError{Err: "query error", Status: http.StatusInternalServerError}
+	}
+
+	lang := new(Language)
+
+	for response.Next() {
+
+		err := response.Scan(
+			&lang.ID,
+			&lang.Language,
+			&lang.Level,
+			&lang.Description,
+		)
+
+		if err != nil {
+			fmt.Println("formating err GetExperienceByID")
+			return nil, err
+		}
+	}
+
+	return lang, nil
+
+}
+func (s *PostgresStore) GetLanguages() ([]*Language, error) {
+	query := `select * from languages`
+
+	langArr := []*Language{}
+
+	response, err := s.db.Query(query)
+
+	if err != nil {
+		fmt.Println("query err")
+		return nil, err
+	}
+
+	for response.Next() {
+		lang := new(Language)
+
+		err := response.Scan(&lang.ID,
+			&lang.Language,
+			&lang.Level,
+			&lang.Description,
+		)
+
+		if err != nil {
+			fmt.Printf("scan err")
+			return nil, err
+		}
+
+		langArr = append(langArr, lang)
+	}
+
+	return langArr, nil
 }

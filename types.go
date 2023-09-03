@@ -74,10 +74,19 @@ func NewSkills(tech, desc string) (*Skills, error) {
 	}, nil
 }
 
-type Languages struct {
+type Language struct {
+	ID          int
 	Language    string `json:"language"`
 	Level       string `json:"level"`
 	Description string `json:"description"`
+}
+
+func NewLanguage(lang string, level string, desc string) (*Language, error) {
+	return &Language{
+		Language:    lang,
+		Level:       level,
+		Description: desc,
+	}, nil
 }
 
 type Projects struct {

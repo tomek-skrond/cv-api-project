@@ -7,6 +7,6 @@ build:
 run:
 	. $(PWD)/$(ENV_FILE) && ./$(BINARY_NAME)
 db:
-	docker run -e POSTGRES_PASSWORD=cvapi -dp 5432:5432 postgres
+	docker run -e POSTGRES_USER=postgres -e POSTGRES_DATABASE=postgres -e POSTGRES_PASSWORD=cvapi -dp 5432:5432 postgres
 
 
