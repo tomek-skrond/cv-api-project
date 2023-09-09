@@ -1,1 +1,0 @@
-docker run -e POSTGRES_PASSWORD=cvapi -dp 5432:5432 postgres
