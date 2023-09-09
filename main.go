@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err, "error initializing storage")
 	}
 
-	fmt.Printf("%+v\n", store)
+	//fmt.Printf("%+v\n", store)
 
 	api := NewAPIServer(listenPort, store)
 	api.Run()

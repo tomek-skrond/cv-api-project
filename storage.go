@@ -182,11 +182,11 @@ func NewPostgresStore() (*PostgresStore, error) {
 	host := os.Getenv("DB_HOST")
 	database := os.Getenv("DB_NAME")
 
-	fmt.Println(user, pass, host, database)
+	//fmt.Println(user, pass, host, database)
 
 	connStr := fmt.Sprintf("postgresql://%v:%v@%v/%v?sslmode=disable", user, pass, host, database)
 
-	fmt.Println(connStr)
+	//fmt.Println(connStr)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -257,7 +257,7 @@ func (s *PostgresStore) CreateLanguagesTable() error {
 		description varchar(50)
 	)`
 
-	fmt.Println("Query executed lang")
+	//fmt.Println("Query executed lang")
 
 	_, err := s.db.Exec(query)
 
@@ -272,7 +272,7 @@ func (s *PostgresStore) CreateProjectsTable() error {
 		description varchar(50)
 	)`
 
-	fmt.Println("Query executed")
+	//fmt.Println("Query executed")
 
 	_, err := s.db.Exec(query)
 
