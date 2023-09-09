@@ -26,7 +26,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./api/
-          file: ./Dockerfile
+          context:  "{{defaultContext}}:api"
+          file: Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/cvapi:latest
