@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -173,16 +172,16 @@ func NewPostgresStore() (*PostgresStore, error) {
 	// 2. ping db
 	// 3. return DB object
 
-	if err := godotenv.Load(); err != nil {
-		return nil, err
-	}
+	// if err := godotenv.Load(); err != nil {
+	// 	return nil, err
+	// }
 
 	user := os.Getenv("DB_USER")
 	pass := os.Getenv("DB_PASS")
 	host := os.Getenv("DB_HOST")
 	database := os.Getenv("DB_NAME")
 
-	//fmt.Println(user, pass, host, database)
+	fmt.Println(user, pass, host, database)
 
 	connStr := fmt.Sprintf("postgresql://%v:%v@%v/%v?sslmode=disable", user, pass, host, database)
 
