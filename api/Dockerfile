@@ -10,8 +10,6 @@ RUN apk update && apk add --no-cache git && apk add --no-cache bash && apk add b
 
 RUN go mod download && go mod verify
 
-RUN echo ${DB_USER} ${DB_HOST} ${DB_PASS}
-
 COPY ./src .
 
 RUN CGO_ENABLED=1 go build -v -o /usr/local/bin/cvapi ./...

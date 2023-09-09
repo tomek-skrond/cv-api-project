@@ -8,9 +8,9 @@ import "time"
 // 4. Languages
 // 5. Projects
 // 6. Contacts
-type Entry interface {
-	ToString()
-}
+// type Entry interface {
+// 	ToString()
+// }
 
 type Person struct {
 	ID        int
@@ -48,9 +48,9 @@ func NewEducation(school, degree, field string, dateStarted, dateEnded time.Time
 	}, nil
 }
 
-func (e Education) ToString() {
-	print(e)
-}
+// func (e Education) ToString() {
+// 	print(e)
+// }
 
 type Experience struct {
 	ID          int
@@ -68,9 +68,10 @@ func NewExperience(company, role string, dateStarted, dateEnded time.Time) (*Exp
 		DateEnded:   time.Time(dateEnded),
 	}, nil
 }
-func (e Experience) ToString() {
-	print(e)
-}
+
+// func (e Experience) ToString() {
+// 	print(e)
+// }
 
 type Language struct {
 	ID          int
@@ -86,9 +87,10 @@ func NewLanguage(lang string, level string, desc string) (*Language, error) {
 		Description: desc,
 	}, nil
 }
-func (l Language) ToString() {
-	print(l)
-}
+
+// func (l Language) ToString() {
+// 	print(l)
+// }
 
 type Project struct {
 	ID             int
@@ -105,9 +107,9 @@ func NewProject(name string, tech string, desc string) (*Project, error) {
 	}, nil
 }
 
-func (p Project) ToString() {
-	print(p)
-}
+// func (p Project) ToString() {
+// 	print(p)
+// }
 
 type Contact struct {
 	FirstName string `json:"firstName"`
