@@ -27,6 +27,11 @@ type Storage interface {
 	UpdateLanguage(*Language) error
 	GetLanguageByID(int) (*Language, error)
 	GetLanguages() ([]*Language, error)
+	CreateProject(*Project) error
+	DeleteProjectByID(int) error
+	UpdateProject(*Project) error
+	GetProjectsByID(int) (*Project, error)
+	GetProjects() ([]*Project, error)
 }
 
 type PostgresStore struct {
@@ -207,6 +212,9 @@ func (s *PostgresStore) Init() error {
 	if err := s.CreateLanguagesTable(); err != nil {
 		return err
 	}
+	if err := s.CreateProjectsTable(); err != nil {
+		return err
+	}
 
 	return nil
 
@@ -250,6 +258,21 @@ func (s *PostgresStore) CreateLanguagesTable() error {
 	)`
 
 	fmt.Println("Query executed lang")
+
+	_, err := s.db.Exec(query)
+
+	return err
+}
+
+func (s *PostgresStore) CreateProjectsTable() error {
+	query := `create table if not exists projects(
+		id serial primary key,
+		project_name varchar(50),
+		technology_used varchar(50),
+		description varchar(50)
+	)`
+
+	fmt.Println("Query executed")
 
 	_, err := s.db.Exec(query)
 
@@ -495,4 +518,118 @@ func (s *PostgresStore) GetLanguages() ([]*Language, error) {
 	}
 
 	return langArr, nil
+}
+
+//////////////// Projects ////////////////////
+
+func (s *PostgresStore) CreateProject(proj *Project) error {
+	query := `insert into projects (project_name,technology_used,description) values ($1, $2, $3)`
+
+	response, err := s.db.Query(
+		query,
+		proj.ProjectName,
+		proj.TechnologyUsed,
+		proj.Description)
+
+	if err != nil {
+		fmt.Printf("%v\n", response.Err())
+		return err
+	}
+
+	return err
+}
+
+func (s *PostgresStore) DeleteProjectByID(id int) error {
+
+	if !s.rowExists(`select * from projects where id = $1`, id) {
+		return apiError{Err: "Permission denied!", Status: http.StatusForbidden}
+	}
+
+	if _, err := s.db.Query(`delete from projects where id = $1`, id); err != nil {
+		return err
+	}
+	return apiError{Err: "Resource deleted successfully", Status: http.StatusOK}
+}
+
+func (s *PostgresStore) UpdateProject(proj *Project) error {
+	query := `update projects set project_name = $1, technology_used = $2, description = $3 where id = $4`
+
+	if !s.rowExists(`select * from projects where id = $1`, proj.ID) {
+		return apiError{Err: "not allowed", Status: http.StatusNotFound}
+	}
+
+	if _, err := s.db.Query(query,
+		proj.ProjectName,
+		proj.TechnologyUsed,
+		proj.Description,
+		proj.ID,
+	); err != nil {
+		return apiError{Err: "query error ", Status: http.StatusInternalServerError}
+	}
+
+	return nil
+}
+func (s *PostgresStore) GetProjectsByID(id int) (*Project, error) {
+
+	query := `select * from projects where id = $1`
+
+	if !s.rowExists(`select * from projects where id = $1`, id) {
+		return nil, apiError{Err: "not existing resource", Status: http.StatusNotFound}
+	}
+
+	response, err := s.db.Query(query, id)
+	if err != nil {
+		return nil, apiError{Err: "query error", Status: http.StatusInternalServerError}
+	}
+
+	proj := new(Project)
+
+	for response.Next() {
+
+		err := response.Scan(
+			&proj.ID,
+			&proj.ProjectName,
+			&proj.TechnologyUsed,
+			&proj.Description,
+		)
+
+		if err != nil {
+			fmt.Println("formating err GetProjByID")
+			return nil, err
+		}
+	}
+
+	return proj, nil
+}
+func (s *PostgresStore) GetProjects() ([]*Project, error) {
+
+	query := `select * from projects`
+
+	projArr := []*Project{}
+
+	response, err := s.db.Query(query)
+
+	if err != nil {
+		fmt.Println("query err")
+		return nil, err
+	}
+
+	for response.Next() {
+		proj := new(Project)
+
+		err := response.Scan(&proj.ID,
+			&proj.ProjectName,
+			&proj.TechnologyUsed,
+			&proj.Description,
+		)
+
+		if err != nil {
+			fmt.Printf("scan err")
+			return nil, err
+		}
+
+		projArr = append(projArr, proj)
+	}
+
+	return projArr, nil
 }

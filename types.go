@@ -12,8 +12,8 @@ type Person struct {
 	ID        int
 	FirstName string        `json:"firstName"`
 	LastName  string        `json:"lastName"`
-	EduArr    []*Education  `json:"eduArr"`
-	ExpArr    []*Experience `json:"expArr"`
+	EduArr    []*Education  `json:"edu_arr"`
+	ExpArr    []*Experience `json:"exp_arr"`
 }
 
 func NewPerson(fn, ln string) (*Person, error) {
@@ -30,7 +30,7 @@ type Education struct {
 	School      string    `json:"school"`
 	Degree      string    `json:"degree"`
 	Field       string    `json:"field"`
-	DateStarted time.Time `json:"dateStarted"`
+	DateStarted time.Time `json:"date_started"`
 	DateEnded   time.Time `json:"dateEnded"`
 }
 
@@ -48,7 +48,7 @@ type Experience struct {
 	ID          int
 	Company     string    `json:"company"`
 	Role        string    `json:"role"`
-	DateStarted time.Time `json:"dateStarted"`
+	DateStarted time.Time `json:"date_started"`
 	DateEnded   time.Time `json:"dateEnded"`
 }
 
@@ -58,19 +58,6 @@ func NewExperience(company, role string, dateStarted, dateEnded time.Time) (*Exp
 		Role:        string(role),
 		DateStarted: time.Time(dateStarted),
 		DateEnded:   time.Time(dateEnded),
-	}, nil
-}
-
-type Skills struct {
-	ID          int
-	Technology  string `json:"technology"`
-	Description string `json:"description"`
-}
-
-func NewSkills(tech, desc string) (*Skills, error) {
-	return &Skills{
-		Technology:  string(tech),
-		Description: string(desc),
 	}, nil
 }
 
@@ -89,10 +76,19 @@ func NewLanguage(lang string, level string, desc string) (*Language, error) {
 	}, nil
 }
 
-type Projects struct {
-	ProjectName    string `json:"projectName"`
-	TechnologyUsed string `json:"technologyUsed"`
+type Project struct {
+	ID             int
+	ProjectName    string `json:"project_name"`
+	TechnologyUsed string `json:"technology_used"`
 	Description    string `json:"description"`
+}
+
+func NewProject(name string, tech string, desc string) (*Project, error) {
+	return &Project{
+		ProjectName:    name,
+		TechnologyUsed: tech,
+		Description:    desc,
+	}, nil
 }
 
 type Contact struct {
@@ -100,4 +96,17 @@ type Contact struct {
 	LastName  string `json:"lastName"`
 	Age       int    `json:"age"`
 	Email     string `json:"email"`
+}
+
+type Skills struct {
+	ID          int
+	Technology  string `json:"technology"`
+	Description string `json:"description"`
+}
+
+func NewSkills(tech, desc string) (*Skills, error) {
+	return &Skills{
+		Technology:  string(tech),
+		Description: string(desc),
+	}, nil
 }

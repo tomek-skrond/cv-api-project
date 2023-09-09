@@ -26,15 +26,20 @@ func NewAPIServer(port string, s Storage) *APIServer {
 func (s *APIServer) Run() {
 	//http.HandleFunc("/user", makeHTTPHandler(handleGetUserByID))
 	router := mux.NewRouter()
+
 	router.HandleFunc("/education", makeHTTPHandler(s.handleEducation))
 	router.HandleFunc("/education/{id}", makeHTTPHandler(s.handleEducationByID))
 	router.HandleFunc("/experience", makeHTTPHandler(s.handleExperience))
 	router.HandleFunc("/experience/{id}", makeHTTPHandler(s.handleExperienceByID))
 	router.HandleFunc("/languages", makeHTTPHandler(s.handleLanguages))
 	router.HandleFunc("/languages/{id}", makeHTTPHandler(s.handleLanguagesByID))
+	router.HandleFunc("/projects", makeHTTPHandler(s.handleProjects))
+	router.HandleFunc("/projects/{id}", makeHTTPHandler(s.handleProjectsByID))
 
 	fmt.Printf("Server listening at port %s \n", s.ListenPort)
-	http.ListenAndServe(s.ListenPort, router)
+	if err := http.ListenAndServe(s.ListenPort, router); err != nil {
+		fmt.Println(err)
+	}
 }
 
 // typowana funkcja, bierze responsewritera i request jako arg i zwraca typ error
