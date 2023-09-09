@@ -8,6 +8,10 @@ import "time"
 // 4. Languages
 // 5. Projects
 // 6. Contacts
+type Entry interface {
+	ToString()
+}
+
 type Person struct {
 	ID        int
 	FirstName string        `json:"firstName"`
@@ -44,12 +48,16 @@ func NewEducation(school, degree, field string, dateStarted, dateEnded time.Time
 	}, nil
 }
 
+func (e Education) ToString() {
+	print(e)
+}
+
 type Experience struct {
 	ID          int
 	Company     string    `json:"company"`
 	Role        string    `json:"role"`
 	DateStarted time.Time `json:"date_started"`
-	DateEnded   time.Time `json:"dateEnded"`
+	DateEnded   time.Time `json:"date_ended"`
 }
 
 func NewExperience(company, role string, dateStarted, dateEnded time.Time) (*Experience, error) {
@@ -59,6 +67,9 @@ func NewExperience(company, role string, dateStarted, dateEnded time.Time) (*Exp
 		DateStarted: time.Time(dateStarted),
 		DateEnded:   time.Time(dateEnded),
 	}, nil
+}
+func (e Experience) ToString() {
+	print(e)
 }
 
 type Language struct {
@@ -75,6 +86,9 @@ func NewLanguage(lang string, level string, desc string) (*Language, error) {
 		Description: desc,
 	}, nil
 }
+func (l Language) ToString() {
+	print(l)
+}
 
 type Project struct {
 	ID             int
@@ -89,6 +103,10 @@ func NewProject(name string, tech string, desc string) (*Project, error) {
 		TechnologyUsed: tech,
 		Description:    desc,
 	}, nil
+}
+
+func (p Project) ToString() {
+	print(p)
 }
 
 type Contact struct {

@@ -46,3 +46,5 @@ bundles/
 vendor/pkg/
 pyenv
 Vagrantfile
+
+fill.go
